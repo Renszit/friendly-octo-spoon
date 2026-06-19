@@ -94,15 +94,19 @@ const FEST = {
   }
 };
 
-const CHEMIE = [
-  ['16:15','Cur','Toxic Kitchen', false],
-  ['17:00','Serve','Toxic Kitchen', false],
-  ['17:40','Fiddlehead','Toxic Garden', false],
-  ['18:30','Rauchen','Toxic Garden', false],
-  ['19:30','Basement','Toxic Garden', false],
-  ['23:30','Nikita Curtis','Toxic Kitchen', true],
-  ['00:30','High Vis','Toxic Kitchen', true]
-];
+const CHEMIE = {
+  sat: [
+    ['23:30','Nikita Curtis','Toxic Kitchen', true],
+    ['00:30','High Vis','Toxic Kitchen', true]
+  ],
+  sun: [
+    ['16:15','Cur','Toxic Kitchen', false],
+    ['17:00','Serve','Toxic Kitchen', false],
+    ['17:40','Fiddlehead','Toxic Garden', false],
+    ['18:30','Rauchen','Toxic Garden', false],
+    ['19:30','Basement','Toxic Garden', false]
+  ]
+};
 
 const root = document.getElementById('root');
 
@@ -121,11 +125,11 @@ function dayHTML(key){
   let h = `<div class="day" data-day="${key}" style="--ac:${d.accent}">`;
   h += `<div class="grid">${d.stages.map(card).join('')}</div>`;
   if(d.note) h += `<p class="section-note">${d.note}</p>`;
-  if(key==='sun'){
+  if(CHEMIE[key]){
     h += `<div class="extra" style="color:${d.accent}"><h2>Chemiefabrik · Toxic Kitchen / Garden</h2>
       <div class="grid">
         <div class="card"><h3 style="background:${d.accent}">Toxic Kitchen / Garden</h3>
-        ${CHEMIE.map(c=>`<div class="act"><span class="t">${c[0]}</span><span class="n">${c[1]}<span class="sub">${c[2]}${c[3]?' · extra ticket':''}</span></span>${c[3]?'<span class="pill">+ticket</span>':''}</div>`).join('')}
+        ${CHEMIE[key].map(c=>`<div class="act"><span class="t">${c[0]}</span><span class="n">${c[1]}<span class="sub">${c[2]}${c[3]?' · extra ticket':''}</span></span>${c[3]?'<span class="pill">+ticket</span>':''}</div>`).join('')}
         </div>
       </div></div>`;
   }
