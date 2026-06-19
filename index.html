@@ -29,11 +29,23 @@
   .card { border-radius:12px; overflow:hidden; border:1px solid #eee; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
   .card h3 { margin:0; font-size:13px; padding:9px 12px; color:#fff; text-transform:uppercase; letter-spacing:0.4px; line-height:1.25; }
   .card h3 span { display:block; font-size:11px; font-weight:500; opacity:0.9; text-transform:none; letter-spacing:0; }
-  .act { display:flex; gap:10px; padding:8px 12px; border-top:1px solid #f2f2f2; align-items:baseline; }
+  .act { display:flex; gap:10px; padding:8px 12px; border-top:1px solid #f2f2f2; align-items:center; }
   .act:first-of-type { border-top:none; }
   .act .t { font-variant-numeric: tabular-nums; font-size:12px; color:#888; min-width:42px; font-weight:600; }
-  .act .n { font-size:14px; font-weight:600; }
+  .act .n { font-size:14px; font-weight:600; transition:color .12s; }
   .act .n .sub { display:block; font-size:11px; font-weight:500; color:#999; }
+  .chk {
+    margin-left:auto; width:22px; height:22px; border-radius:50%; flex:none; padding:0;
+    border:2px solid #d3d3d3; background:transparent; cursor:pointer; position:relative; transition:all .12s;
+  }
+  .chk:active { transform:scale(0.88); }
+  .act.done .chk { background:var(--ac); border-color:var(--ac); }
+  .act.done .chk::after {
+    content:''; position:absolute; left:6px; top:2px; width:5px; height:10px;
+    border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  .act.done { background:#fff4cc; }
+  .act.done .n { color:#1a1a1a; font-weight:800; text-decoration:underline; text-decoration-color:var(--ac); text-decoration-thickness:2px; text-underline-offset:2px; }
   .section-note { font-size:12px; color:#666; margin:10px 2px; font-style:italic; }
   .extra { margin-top:20px; }
   .extra h2 { font-size:15px; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 8px; border-left:4px solid currentColor; padding-left:8px; }
@@ -108,28 +120,49 @@ const CHEMIE = {
   ]
 };
 
+/* ---- seen-state persistence (localStorage; degrades quietly if blocked) ---- */
+function loadChecked(){
+  try { return new Set(JSON.parse(localStorage.getItem('fyf_seen') || '[]')); }
+  catch(e){ return new Set(); }
+}
+function saveChecked(){
+  try { localStorage.setItem('fyf_seen', JSON.stringify([...CHECKED])); }
+  catch(e){ /* sandboxed preview — ignore */ }
+}
+const CHECKED = loadChecked();
+
 const root = document.getElementById('root');
 
-function actRow(t, n){
-  return `<div class="act"><span class="t">${t}</span><span class="n">${n}</span></div>`;
+function actRow(id, t, nameHTML){
+  const done = CHECKED.has(id) ? ' done' : '';
+  return `<div class="act${done}" data-id="${id}">
+    <span class="t">${t}</span>
+    <span class="n">${nameHTML}</span>
+    <button class="chk" aria-label="want to see"></button>
+  </div>`;
 }
-function card(st){
+function card(st, key, si){
   return `<div class="card">
     <h3 style="background:var(--ac)">${st.v}<span>${st.s}</span></h3>
-    ${st.a.map(x=>actRow(x[0], x[1])).join('')}
+    ${st.a.map((x,ai)=>actRow(`${key}|${si}|${ai}`, x[0], x[1])).join('')}
   </div>`;
 }
 
 function dayHTML(key){
   const d = FEST[key];
   let h = `<div class="day" data-day="${key}" style="--ac:${d.accent}">`;
-  h += `<div class="grid">${d.stages.map(card).join('')}</div>`;
+  h += `<div class="grid">${d.stages.map((st,si)=>card(st,key,si)).join('')}</div>`;
   if(d.note) h += `<p class="section-note">${d.note}</p>`;
   if(CHEMIE[key]){
     h += `<div class="extra" style="color:${d.accent}"><h2>Chemiefabrik · Toxic Kitchen / Garden</h2>
       <div class="grid">
         <div class="card"><h3 style="background:${d.accent}">Toxic Kitchen / Garden</h3>
-        ${CHEMIE[key].map(c=>`<div class="act"><span class="t">${c[0]}</span><span class="n">${c[1]}<span class="sub">${c[2]}${c[3]?' · extra ticket':''}</span></span>${c[3]?'<span class="pill">+ticket</span>':''}</div>`).join('')}
+        ${CHEMIE[key].map((c,ci)=>{
+          const inner = `${c[1]}<span class="sub">${c[2]}${c[3]?' · extra ticket':''}</span>`;
+          const id = `${key}|chemie|${ci}`;
+          const done = CHECKED.has(id) ? ' done' : '';
+          return `<div class="act${done}" data-id="${id}"><span class="t">${c[0]}</span><span class="n">${inner}</span>${c[3]?'<span class="pill">+ticket</span>':''}<button class="chk" aria-label="want to see"></button></div>`;
+        }).join('')}
         </div>
       </div></div>`;
   }
@@ -144,7 +177,7 @@ root.innerHTML = `
     <h1>Farewell Youth Fest</h1>
     <div class="dates">19 – 21 June 2026</div>
   </div>
-  <div class="caveat">⚠️ Set times are <b>approximate</b> — reconstructed from a dense grid where acts don't align cleanly to rows. The <b>order of acts per stage is reliable</b>; exact start times (especially Thalia/Revival and all of Sunday, marked with ~) should be checked against the official PDF.</div>
+  <div class="caveat">⚠️ Set times are <b>approximate</b> — reconstructed from a dense grid where acts don't align cleanly to rows. The <b>order of acts per stage is reliable</b>; exact start times (especially Thalia/Revival and all of Sunday, marked with ~) should be checked against the official PDF. Tap the circle next to any act to highlight the bands you want to see.</div>
   <div class="tabs">
     ${Object.keys(FEST).map(k=>`<button class="tab" data-tab="${k}" style="background:${FEST[k].accent}"><span>${FEST[k].label}</span><small>${FEST[k].date}</small></button>`).join('')}
   </div>
@@ -155,10 +188,22 @@ root.innerHTML = `
   </div>
 `;
 
+/* tab switching */
 function show(k){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===k));
   document.querySelectorAll('.day').forEach(d=>d.classList.toggle('active', d.dataset.day===k));
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>show(t.dataset.tab)));
 show('fri');
+
+/* check toggling via delegation */
+document.getElementById('days').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.chk');
+  if(!btn) return;
+  const row = btn.closest('.act');
+  const id = row.dataset.id;
+  if(CHECKED.has(id)){ CHECKED.delete(id); row.classList.remove('done'); }
+  else { CHECKED.add(id); row.classList.add('done'); }
+  saveChecked();
+});
 </script>
