@@ -1,0 +1,160 @@
+<div id="root"></div>
+<style>
+  #root, #root * { box-sizing: border-box; }
+  #root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1a1a1a;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4px;
+  }
+  .head { text-align:center; padding: 12px 8px 4px; }
+  .head h1 { font-size: 26px; letter-spacing: 1px; margin: 0; text-transform: uppercase; }
+  .head .dates { font-size: 14px; color:#666; margin-top: 4px; }
+  .caveat {
+    font-size: 12px; color:#7a5a00; background:#fff7df; border:1px solid #f0dca0;
+    border-radius:8px; padding:8px 12px; margin: 12px 0; line-height:1.4;
+  }
+  .tabs { display:flex; gap:6px; position:sticky; top:0; z-index:5; padding:8px 0; background:rgba(255,255,255,0.92); backdrop-filter:blur(6px); }
+  .tab {
+    flex:1; border:none; cursor:pointer; padding:10px 6px; border-radius:10px;
+    font-weight:700; font-size:14px; color:#fff; opacity:0.55; transition:opacity .15s, transform .1s;
+  }
+  .tab:active { transform: scale(0.98); }
+  .tab.active { opacity:1; }
+  .tab small { display:block; font-weight:500; font-size:11px; opacity:0.9; }
+  .day { display:none; }
+  .day.active { display:block; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:10px; margin-top:12px; }
+  .card { border-radius:12px; overflow:hidden; border:1px solid #eee; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .card h3 { margin:0; font-size:13px; padding:9px 12px; color:#fff; text-transform:uppercase; letter-spacing:0.4px; line-height:1.25; }
+  .card h3 span { display:block; font-size:11px; font-weight:500; opacity:0.9; text-transform:none; letter-spacing:0; }
+  .act { display:flex; gap:10px; padding:8px 12px; border-top:1px solid #f2f2f2; align-items:baseline; }
+  .act:first-of-type { border-top:none; }
+  .act .t { font-variant-numeric: tabular-nums; font-size:12px; color:#888; min-width:42px; font-weight:600; }
+  .act .n { font-size:14px; font-weight:600; }
+  .act .n .sub { display:block; font-size:11px; font-weight:500; color:#999; }
+  .section-note { font-size:12px; color:#666; margin:10px 2px; font-style:italic; }
+  .extra { margin-top:20px; }
+  .extra h2 { font-size:15px; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 8px; border-left:4px solid currentColor; padding-left:8px; }
+  .extra .grid { margin-top:0; }
+  .pill { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:6px; background:#ffe1e1; color:#b00; margin-left:6px; vertical-align:middle; }
+  .foot { margin:24px 2px 12px; font-size:12px; color:#666; line-height:1.6; border-top:1px solid #eee; padding-top:12px; }
+  .foot b { color:#333; }
+</style>
+<script>
+const FEST = {
+  fri: {
+    label:'Friday', date:'19 June', accent:'#3f8fb0',
+    note:'Scheune (Island in the Sun) opens ~15:00 with a Remo + Über You + High Times session.',
+    stages:[
+      {v:'Groovestation', s:'Farewell Youth Stage', a:[['16:00','Mannequin Death Sq.'],['18:00','Jawless'],['20:00','Ways Away'],['22:00','Dune Rats']]},
+      {v:'HD Rockbar', s:'Hell Stage', a:[['16:00','Without Love'],['18:00','Slowkiss'],['20:00','Hippie Trim'],['22:00','Waves Like Walls']]},
+      {v:'Zille', s:'Anchors Bowl', a:[['16:00','Dosenstolz'],['18:00','Desolat'],['20:00','Deibel'],['22:00','Twin Mill']]},
+      {v:'Mondfisch', s:'Dark Stage', a:[['16:00','Heavyseas'],['18:00','Eaten By Snakes'],['20:00','Bellyacher'],['22:00','Say It Anyway']]},
+      {v:'Thalia', s:'Revival Stage', a:[['~17:00','Remo'],['~19:00','Phil Holstein'],['~20:30','Jared Hart']]},
+      {v:'Lofthouse', s:'Oben Stage', a:[['15:00','Glass'],['16:00','Jota'],['18:00','Death Lens'],['20:00','Kind Kaputt'],['22:00','Casey']]},
+      {v:'Ostpol', s:'Überstage', a:[['15:00','Gift'],['16:00','Park And Riot'],['18:00','Pabst'],['20:00','Make War']]},
+      {v:'Katys', s:'Pistons Stage', a:[['16:00','Heart A Tact'],['18:00','Fine And Great'],['20:00','Final Effort']]},
+      {v:'Scheune', s:'Island In The Sun', a:[['16:00','Four Black Lungs'],['18:00','The Snouters'],['20:00','Fragile Animals'],['20:00','No King No Crown']]},
+      {v:'Schauburg', s:'No Bodies Stage', a:[['18:00','Attic Stories'],['20:00','Still Talk']]}
+    ],
+    after:[['Groovestation','DJ Bane'],['Ostpol','DJ F.O.D.'],['Zilles Anker','Karaoke']]
+  },
+  sat: {
+    label:'Saturday', date:'20 June', accent:'#9a7bb0',
+    note:'Zille closes the night with Tigeryouth — billed as “Best of Fest (by FBL)”.',
+    stages:[
+      {v:'Groovestation', s:'Farewell Youth Stage', a:[['14:30','Ti:ed'],['16:00','Fragile'],['18:00','Knives'],['20:00','Pain Magazine'],['22:00','Lovea']]},
+      {v:'HD Rockbar', s:'Hell Stage', a:[['14:30','Thistle Sifter'],['16:00','Dosser'],['18:00','Boneflower'],['20:00','We Hate U Pls Die'],['22:00','Neander']]},
+      {v:'Zille', s:'Anchors Bowl', a:[['14:30','Wasabi Riot'],['16:00','Friends W. Boats'],['18:00','Wellsaid'],['20:00','Mr Linus'],['22:00','Tigeryouth']]},
+      {v:'Mondfisch', s:'Dark Stage', a:[['14:30','Healing'],['16:00','The Traders'],['18:00','Affenmesserkampf'],['20:00','Chartreux'],['22:00','Burnt Tapes']]},
+      {v:'Thalia', s:'Revival Stage', a:[['~17:00','Holey'],['~18:30','Spauling'],['~20:00','B M H & H *']]},
+      {v:'Lofthouse', s:'Oben Stage', a:[['16:00','Dogbite'],['17:00','Defiance'],['18:00','I Saw Daylight'],['20:00','Ritual'],['22:00','Swain']]},
+      {v:'Ostpol', s:'Überstage', a:[['16:00','Primetime Failure'],['18:00','Second Youth'],['19:00','Über You'],['20:00','Tired Radio']]},
+      {v:'Katys', s:'Pistons Stage', a:[['16:00','Malheur'],['18:00','Morgan Pines'],['19:00','True Gloom'],['20:00','The Last Mile']]},
+      {v:'Scheune', s:'Island In The Sun', a:[['16:00','The High Times'],['17:00','The Runnings'],['18:00','Catapults'],['20:00','Matze Rossi']]},
+      {v:'Schauburg', s:'No Bodies Stage', a:[['18:00','Pennwood Rd.'],['20:00','Between Bodies']]}
+    ],
+    after:[['Groovestation','DJ Delüsches'],['Ostpol','Four Black Lungs DJ Set'],['Zilles Anker','Karaoke']]
+  },
+  sun: {
+    label:'Sunday', date:'21 June', accent:'#a3aa2e',
+    note:'Sunday start times are the most irregular in the original — treat these as approximate.',
+    stages:[
+      {v:'Groovestation', s:'Farewell Youth Stage', a:[['15:00','Frachter'],['~17:00','Ratsalad.'],['~19:00','Militarie Gun'],['21:00','Turbostaat']]},
+      {v:'HD Rockbar', s:'Hell Stage', a:[['15:00','A Dog Called Ego'],['~17:00','Apoa'],['~19:00','Stay In Nothing'],['21:00','Young Mountain']]},
+      {v:'Zille', s:'Anchors Bowl', a:[['15:00','Junejunejuly'],['~17:00','Greetings From'],['~19:00','Murx'],['21:00','The Last Mile']]},
+      {v:'Mondfisch', s:'Dark Stage', a:[['14:15','Hell And Back'],['15:00','Goodbye Fairground'],['~17:00','Shark Trails'],['~19:00','Grunk']]},
+      {v:'Lofthouse', s:'Oben Stage', a:[['15:00','Be Kind'],['16:00','Tiny Voices'],['18:00','Carsick'],['20:00','The Flatliners']]},
+      {v:'Ostpol', s:'Überstage', a:[['15:00','Doublewide'],['16:00','W S T H? **'],['~19:00','13 Crowes'],['21:00','The Melmacs']]},
+      {v:'Katys', s:'Pistons Stage', a:[['15:00','Scott Evil'],['16:00','E P A T H H ***'],['18:00','Hawkbit']]}
+    ],
+    after:[['HD-Rockbar','Empty the bar & look back on the fest'],['Mondfisch','Empty the bar & look back on the fest']]
+  }
+};
+
+const CHEMIE = [
+  ['16:15','Cur','Toxic Kitchen', false],
+  ['17:00','Serve','Toxic Kitchen', false],
+  ['17:40','Fiddlehead','Toxic Garden', false],
+  ['18:30','Rauchen','Toxic Garden', false],
+  ['19:30','Basement','Toxic Garden', false],
+  ['23:30','Nikita Curtis','Toxic Kitchen', true],
+  ['00:30','High Vis','Toxic Kitchen', true]
+];
+
+const root = document.getElementById('root');
+
+function actRow(t, n){
+  return `<div class="act"><span class="t">${t}</span><span class="n">${n}</span></div>`;
+}
+function card(st){
+  return `<div class="card">
+    <h3 style="background:var(--ac)">${st.v}<span>${st.s}</span></h3>
+    ${st.a.map(x=>actRow(x[0], x[1])).join('')}
+  </div>`;
+}
+
+function dayHTML(key){
+  const d = FEST[key];
+  let h = `<div class="day" data-day="${key}" style="--ac:${d.accent}">`;
+  h += `<div class="grid">${d.stages.map(card).join('')}</div>`;
+  if(d.note) h += `<p class="section-note">${d.note}</p>`;
+  if(key==='sun'){
+    h += `<div class="extra" style="color:${d.accent}"><h2>Chemiefabrik · Toxic Kitchen / Garden</h2>
+      <div class="grid">
+        <div class="card"><h3 style="background:${d.accent}">Toxic Kitchen / Garden</h3>
+        ${CHEMIE.map(c=>`<div class="act"><span class="t">${c[0]}</span><span class="n">${c[1]}<span class="sub">${c[2]}${c[3]?' · extra ticket':''}</span></span>${c[3]?'<span class="pill">+ticket</span>':''}</div>`).join('')}
+        </div>
+      </div></div>`;
+  }
+  h += `<div class="extra" style="color:${d.accent}"><h2>Aftershow Parties · free with fest ticket</h2>
+    <div class="grid">${d.after.map(p=>`<div class="card"><h3 style="background:${d.accent}">${p[0]}</h3><div class="act"><span class="n">${p[1]}</span></div></div>`).join('')}</div></div>`;
+  h += `</div>`;
+  return h;
+}
+
+root.innerHTML = `
+  <div class="head">
+    <h1>Farewell Youth Fest</h1>
+    <div class="dates">19 – 21 June 2026</div>
+  </div>
+  <div class="caveat">⚠️ Set times are <b>approximate</b> — reconstructed from a dense grid where acts don't align cleanly to rows. The <b>order of acts per stage is reliable</b>; exact start times (especially Thalia/Revival and all of Sunday, marked with ~) should be checked against the official PDF.</div>
+  <div class="tabs">
+    ${Object.keys(FEST).map(k=>`<button class="tab" data-tab="${k}" style="background:${FEST[k].accent}"><span>${FEST[k].label}</span><small>${FEST[k].date}</small></button>`).join('')}
+  </div>
+  <div id="days">${Object.keys(FEST).map(dayHTML).join('')}</div>
+  <div class="foot">
+    <div><b>*</b> Between My Head And Heart &nbsp;·&nbsp; <b>**</b> Who Saves The Hero? &nbsp;·&nbsp; <b>***</b> Empty Pint & The Hot Shots @ Katys-Rooftop</div>
+    <div style="margin-top:6px"><b>Heads up:</b> “The Last Mile” is listed twice (Sat · Katys ~20:00 and Sun · Zille 21:00) — verify whether that's one band playing twice or two different acts.</div>
+  </div>
+`;
+
+function show(k){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===k));
+  document.querySelectorAll('.day').forEach(d=>d.classList.toggle('active', d.dataset.day===k));
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>show(t.dataset.tab)));
+show('fri');
+</script>
